@@ -30,7 +30,9 @@ using namespace std;
 // Function prototypes
 void prntTitle();       //Function to print the title of the game
 int factorial(int n);   //Function to calculate the factorial of a number
+bool isFactorial(int num);
 int fibonacci(int n);   //Function to calculate the Fibonacci series
+bool isFibonacci(int num);
 void quicksort(vector<Card>& cards, int low, int high); //Function to perform quicksort on a vector of cards
 int partition(vector<Card>& cards, int low, int high);  //Function to partition the vector for quicksort
 void inorderTraversal(Node* root);      //Function to perform inorder traversal of a binary tree
@@ -64,46 +66,67 @@ int main() {
         list<Card> playerHand;
         list<Card> dealerHand;
         
-        //Deal initial cards
+        // Deal initial cards
         deck.dealInitialCards(playerHand, dealerHand);
         deck.displayInitialHands(playerHand, dealerHand);
-        //Player's and Dealer's turn
+        
+        // Player's and Dealer's turn
         deck.playerTurn(playerHand, player);
         deck.dealerTurn(dealerHand, &Deck::calculateHandValue);
-        //Determine winner and update score
+        
+        // Determine winner and update score
         deck.determineWinner(playerHand, dealerHand);
         deck.updateScore(player.balance, playerHand, dealerHand);
         
-        //Record game result
-        if (deck.calculateHandValue(playerHand) > 21) {
+        // Calculate hand values
+        int playerValue = deck.calculateHandValue(playerHand);
+        int dealerValue = deck.calculateHandValue(dealerHand);
+
+        // Check for factorial bonus
+        if (isFactorial(playerValue)) {
+            cout << "Congratulations! Your hand value " << playerValue << " is a factorial number. You receive a bonus of $100!" << endl;
+            player.balance += 100;
+        }
+
+        // Check for Fibonacci bonus
+        if (isFibonacci(playerValue)) {
+            cout << "Congratulations! Your hand value " << playerValue << " is a Fibonacci number. You receive a bonus of $100!" << endl;
+            player.balance += 100;
+        }
+        
+        // Record game result
+        if (playerValue > 21) {
             stats.recordLoss();
-        } else if (deck.calculateHandValue(dealerHand) > 21 || deck.calculateHandValue(playerHand) > deck.calculateHandValue(dealerHand)) {
+        } else if (dealerValue > 21 || playerValue > dealerValue) {
             stats.recordWin();
             player.winBet();
         } else {
             stats.recordLoss();
             player.loseBet();
         }
-        //Display current balance
+        
+        // Display current balance
         cout << "Your current balance: $" << player.balance << endl;
-        if(player.balance <= 0){
-            cout<<"Pit Boss: Buddy, you lost all of your money. Get outta here!\n";
-            cout<<"\nPLAYER STATS\n";
+        if (player.balance <= 0) {
+            cout << "Pit Boss: Buddy, you lost all of your money. Get outta here!\n";
+            cout << "\nPLAYER STATS\n";
             break;
         }
         cout << "Do you want to play again? (y/n): ";
         cin >> playAgain;
-    } 
-    while (playAgain == 'y' && player.balance > 0);
-    //Displaying player stats and game stats and leaving message
+    } while (playAgain == 'y' && player.balance > 0);
+    
+    // Display player stats and game stats
     if (playAgain != 'y' || player.balance <= 0) {
         player.displayStats();
     }
     stats.displayStats();
     deck.displayGoodbyeMessage();
-    //Exit stage right
+    
+    // Exit stage right
     return 0;
 }
+
 //Function to print the title of the game
 void prntTitle() {
     cout << "WELCOME TO BLACKJACK AT PORTER'S CASINO\n";
@@ -117,10 +140,29 @@ int factorial(int n) {
     if (n <= 1) return 1;
     return n * factorial(n - 1);
 }
+bool isFactorial(int num) {
+    int i = 1;
+    int fact = 1;
+    while (fact < num) {
+        i++;
+        fact *= i;
+    }
+    return fact == num;
+}
 //Function to calculate the Fibonacci series
 int fibonacci(int n) {
     if (n <= 1) return n;
     return fibonacci(n - 1) + fibonacci(n - 2);
+}
+bool isFibonacci(int num) {
+    int a = 0, b = 1, c;
+    if (num == 0 || num == 1) return true;
+    while (b < num) {
+        c = a + b;
+        a = b;
+        b = c;
+    }
+    return b == num;
 }
 //Function to perform quicksort on a vector of cards
 void quicksort(vector<Card>& cards, int low, int high) {
